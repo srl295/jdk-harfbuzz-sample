@@ -24,8 +24,8 @@
 package com.ibm.us.srloomis.harfbuzz;
 
 import java.awt.Container;
+import java.awt.Font;
 import java.awt.GridLayout;
-import java.util.Locale;
 
 import javax.swing.AbstractListModel;
 import javax.swing.JFrame;
@@ -33,55 +33,66 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.ListModel;
-
-import com.ibm.icu.util.ULocale;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
 
 public class HarfbuzzSample extends JFrame {
-	private static final String TITLE = HarfbuzzSample.class.getSimpleName()+"@"+System.getProperty("java.version");
+	private static final String SHORTNAME = HarfbuzzSample.class.getSimpleName() + ":"
+			+ System.getProperty("sun.font.layoutengine", "-");
+	private static final String TITLE = SHORTNAME + "@" + System.getProperty("java.version");
+	private final SimplePubSub pubsub = new SimplePubSub(HarfbuzzSample.class.getName());
 	/**
-	 * 
+	 *
 	 */
 	static final ListModel<String> STRINGS = new AbstractListModel<String>() {
+		String[] strs = new SampleStrings().getArray();
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = -3067781741130774429L;
-		// use JDK Locale - lots of locales available, especially on 9
-//		Locale l[] = Locale.getAvailableLocales();
-		// use ICU Locale - lots of locales available, anywhere
-		ULocale l[] = ULocale.getAvailableLocales();
-		@Override
-		public int getSize() {
-			// TODO Auto-generated method stub
-			return l.length;
-		}
 
 		@Override
 		public String getElementAt(int index) {
-			//	Locale locale = l[index];
-			ULocale locale = l[index];
-			return locale.toLanguageTag()+"—"+locale.getDisplayName()+"—"+locale.getDisplayName(locale);
+			return strs[index];
+		}
+
+		@Override
+		public int getSize() {
+			return strs.length;
 		}
 	};
-	
-	
+
+	private static final long serialVersionUID = 3996253726718591138L;
+
+	public static void main(String args[]) {
+		new HarfbuzzSample();
+	}
+
 	JList<String> list = new JList<String>(STRINGS);
 	JScrollPane scroller = new JScrollPane(list);
-	
-	private static final long serialVersionUID = 3996253726718591138L;
+	JLabel label = new JLabel("…");
+
 	HarfbuzzSample() {
 		super(TITLE);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		final Container c = getContentPane();
 		c.setLayout(new GridLayout(3, 3));
 		c.add(new JLabel(getTitle()));
-		
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		c.add(scroller);
-		
+		label.setFont(new Font("Noto Sans", Font.PLAIN, 48));
+		c.add(label);
+		list.addListSelectionListener(
+				(ListSelectionEvent e) -> setText(STRINGS.getElementAt(list.getSelectedIndex()).split(":")[1]));
 		pack();
 		setVisible(true);
+		pubsub.listen((String s) -> setText(s));
 	}
-	public static void main(String args[]) {
-		new HarfbuzzSample();
+
+	private void setText(String string) {
+		if (!string.equals(label.getText())) {
+			label.setText(string);
+			pubsub.send(string);
+		}
 	}
 }
