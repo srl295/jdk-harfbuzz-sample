@@ -44,6 +44,9 @@ public class SampleStrings {
 			// ULocale locale = l[index];
 			strings.add(l.toLanguageTag() + "—" + l.getDisplayName() + ":" + l.getDisplayName(l));
 		}
+		strings.add("0 khmer:ន្រ្តី");
+		strings.add("0 syriac:ܡܠܬܐ");
+		strings.add("0 telugu:క్రి");
 	}
 
 	/**
